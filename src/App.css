@@ -34,3 +34,12 @@
 .activeImage {
   
 }
+
+.spinner {
+  border: 1px dashed #ccc;
+  border-radius: 5px;
+  padding: 100px;
+  margin: 0px 20px;
+  display: flex;
+  justify-content: center;
+}

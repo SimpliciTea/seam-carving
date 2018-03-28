@@ -15,7 +15,7 @@ class App extends Component {
       activeImage: falcon,
       hasMagGradient: false,
       hasMinSeam: false,
-      targetWidth: 700
+      targetWidth: 400
     }
   }
 
