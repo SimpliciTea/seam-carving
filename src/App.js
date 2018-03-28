@@ -21,9 +21,16 @@ class App extends Component {
 
   generateMagnitudeGradient = () => {
     let ctx = document.getElementById('active-image').getContext('2d');
-    let gradient = new MagGradient(ctx);
+    let imageData = ctx.getImageData(0, 0, ctx.canvas.clientWidth, ctx.canvas.clientHeight);
+    
+    let gradient = new MagGradient(imageData);
 
-    this.setState({ gradient, hasMagGradient: true, activeCtx: ctx });
+    this.setState({ 
+      gradient, 
+      activeImageData: imageData, 
+      hasMagGradient: true, 
+      activeCtx: ctx, 
+    });
   }
 
   renderMagnitudeGradient = () => {
