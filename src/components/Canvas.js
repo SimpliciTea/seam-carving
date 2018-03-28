@@ -1,80 +1,94 @@
 import React from 'react';
+import { PulseLoader } from 'react-spinners';
 
 
 class Canvas extends React.Component {
 	constructor(props) {
 		super(props);
 
-		let srcType = typeof props.imgSrc;
-		let imgData = this.getImageDataFromProps(props);
-
-		this.state = { 
-			...imgData 
+		this.state = {
+			imgLoaded: false,
+			imgSrc: props.imgSrc
 		};
 	}
 
-	getImageDataFromProps = (props) => {
-		let imgData;
+	componentDidMount = () => {
+		this.parseImgSrc();
+	}
 
-		// img URI passed as a string vs. ImageData interface as object
-		if (typeof props.imgSrc === 'string') {
-			let img = new Image();
-			img.src = props.imgSrc;
+	componentWillReceiveProps = (nextProps) => {
+		if (this.state.imgSrc !== nextProps.imgSrc) {
+			this.parseImgSrc();
+		}
+	}
 
-			let imgWidth = img.naturalWidth;
-			let imgHeight = img.naturalHeight;
-			let ratio = imgHeight / imgWidth;
+	parseImgSrc = () => {
+		let { imgSrc } = this.props;
 
+		// if we're getting an object, it should be an ImageData object ready to work with.
+		if (typeof imgSrc === 'object') {
+			this.setImageData(imgSrc);
+		} else {
+			this.buildImageData(imgSrc);
+		}
+	}
+
+	setImageData = (imgData) => {
+		this.setState({
+			imgLoaded: true,
+			img: imgData,
+			width: imgData.width,
+			height: imgData.height
+		}, () => {
+			let ctx = this.state.ctx || this.refs[this.props.id].getContext('2d');
+			
+			if (this.state.ctx === undefined) {
+				this.setState({ ctx: this.refs[this.props.id].getContext('2d') })
+			};
+
+			this.drawImage(ctx);
+		})
+	}
+
+	buildImageData = (imgSrc) => {
+		let img = new Image();
+		img.src = imgSrc;
+		
+		img.onload = () => {
+			let ratio = img.naturalHeight / img.naturalWidth;
 			let windowWidth = window.innerWidth;
 
-			imgData = {
-				srcType: 'string', 
-				width: windowWidth * .9,
-				height: windowWidth * .9 * ratio,
-				img
-			}
-		} else {
-			imgData = {
-				srcType: 'object',
-				width: props.imgSrc.width,
-				height: props.imgSrc.height,
-				img: props.imgSrc
-			}
-		}
+			let width = windowWidth * .9;
+			let height = width * ratio;
+			
+			let canvas = document.createElement('canvas');
+			canvas.width = width;
+			canvas.height = height;
 
-		return imgData;
-	}
+			let ctx = canvas.getContext('2d');
+			ctx.drawImage(img, 0, 0, width, height);
 
-	componentDidMount() {
-		let ctx = this.refs[this.props.id].getContext('2d');
+			let imgData = ctx.getImageData(0, 0, width, height);
+			canvas.remove();
 
-		this.setState({ ctx }, () => this.drawImage(this.state.imgSrc));
-	}
-
-	componentWillReceiveProps(nextProps) {
-		if (this.state.img !== nextProps.imgSrc) {
-			let imgData = this.getImageDataFromProps(nextProps);
-
-			this.setState({	...imgData }, () => this.drawImage());
+			this.setImageData(imgData);
 		}
 	}
 
-	drawImage = () => {
-		let { srcType, img, ctx, height, width } = this.state;
+	drawImage = (ctx) => {
+		let { img } = this.state;
 
-		console.log(this.state);
-
-		if (srcType === 'string') ctx.drawImage(img, 0, 0, width, height);
-		else {
-			ctx.putImageData(img, 0, 0);
-		}
+		ctx.putImageData(img, 0, 0);
 	}
 
-	render = () => 
-		<canvas id={this.props.id} 
-						ref={this.props.id}
-						width={this.state.width}
-						height={this.state.height}/>
+	render = () => this.state.imgLoaded
+		? <canvas id={this.props.id} 
+							ref={this.props.id}
+							width={this.state.width}
+							height={this.state.height}/>
+		: <div className="spinner">
+				<PulseLoader loading={!this.state.imgLoaded} color="#ccc"/>
+			</div>
 }
 
 
