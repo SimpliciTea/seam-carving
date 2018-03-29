@@ -7,24 +7,31 @@
 
 class Seams {
 	constructor(gradient) {
-		this.gradientMatrix = gradient.magnitude;
+		this.data = gradient.data;
 		this.width = gradient.width;
 		this.height = gradient.height;
 
-		this.minSeamMatrix = null;
-		this.minSeam = null;
-
-		this.generateMinSeamMatrix();
-		this.pluckMinSeam();
+		this.minSeamMatrix = this.generateMinSeamMatrix();
+		this.minSeam = this.pluckMinSeam();
 	}
 
 
 	generateMinSeamMatrix = () => {
-		// create a new minSeamMatrix and calculate seams
-		this.minSeamMatrix = [];
-		this.fillMinSeamMatrix();
-	}
+		let minSeamMatrix = new Array(this.data.length);
 
+		// fill the first row
+		for (let i = 0; i < this.width; i++) {
+			this.minSeamMatrix[i] = this.data[]
+		}
+		
+		for (let i = this.width; i < this.data.length; i++) {
+			let p1 = (i % this.width > 0) ? this.minSeamMatrix[i - this.width - 1] : Infinity;
+			let p2 = this.minSeamMatrix[i - this.width];
+			let p3 = (i % this.width < this.width - 1) ? this.minSeamMatrix[i - this.width + 1] : Infinity;
+
+			this.minSeamMatrix[i] = Math.min(p1, p2, p3) + this.data[i];
+		}
+	}
 
 	/*
 	Fills a two-dimensional array representing pixels by [x][y]
@@ -59,10 +66,16 @@ class Seams {
 	*/
 	pluckMinSeam = () => {
 		let min = Infinity;
-		let x = 0;
-		let y = this.height - 1;
+		let minIndex;
 
-		// get our starting x
+		// get our starting pixel
+		for (let i = this.data.length - this.width; i < this.data.length; i++) {
+			if (minSeamMatrix[i] < min) {
+				min = minSeamMatrix[i];
+				minIndex = i;
+			}
+		}
+
 		this.minSeamMatrix.forEach((col, i) => {
 			if (min > col[this.height - 1]) {
 				min = col[this.height - 1];

@@ -17,6 +17,8 @@ class MagnitudeGradient {
 		let mag = {
 			min: Infinity,
 			max: -Infinity,
+			height: this.height,
+			width: this.width,
 			data: new Array(this.width * this.height)
 		};
 
@@ -57,7 +59,8 @@ class MagnitudeGradient {
 		// if it's the first pixel, get it's luminance
 		if (index === 0) this.luminance[0] = this.toLuminance32(this.buf32[0]);
 
-		// otherwise, if it has a right neighbor, get it's luminance		
+		// otherwise, if it has a right neighbor, get it's luminance
+		// for use in subsequent horizontal component calculation
 		if (index % this.width < this.width - 1) {
 		  this.luminance[index + 1] = this.toLuminance32(this.buf32[index + 1]);
 		}	
