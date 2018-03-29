@@ -44,9 +44,9 @@ class MagnitudeGradient {
 	}
 
 	toLuminance32 = (pixel) => {
-		return 0.2126 * (pixel >> 0 & 255) 
-				 + 0.7152 * (pixel >> 8 & 255)
-				 + 0.0722 * (pixel >> 16 & 255);
+		return 0.2126 * ((pixel >> 0) & 255) 
+				 + 0.7152 * ((pixel >> 8) & 255)
+				 + 0.0722 * ((pixel >> 16) & 255);
 	}
 
 	// this is called first, so we want to generate the luminance data on this pass
@@ -107,6 +107,8 @@ class MagnitudeGradient {
 				(value << 16) | // blue
 				(value <<  8) | // green
 				(value);				// red
+
+			return value;
 		})
 
 		return new ImageData(buf8, this.width, this.height);

@@ -14,8 +14,7 @@ class App extends Component {
     this.state = {
       activeImage: falcon,
       hasMagGradient: false,
-      hasMinSeam: false,
-      targetWidth: 400
+      targetWidth: 500
     }
   }
 
@@ -26,8 +25,8 @@ class App extends Component {
     let gradient = new MagGradient(imageData);
 
     this.setState({ 
-      gradient, 
-      activeImageData: imageData, 
+      gradient,
+      activeImage: imageData, 
       hasMagGradient: true, 
       activeCtx: ctx, 
     });
@@ -38,57 +37,62 @@ class App extends Component {
   }
 
   generateMinSeam = () => {
-    let seams = new Seams(this.state.gradient);
-    this.setState({ hasMinSeam: true, minSeam: seams.minSeam }, this.renderMinSeam);
+    let { activeImage } = this.state;
+    let gradient = new MagGradient(activeImage);
+    let seams = new Seams(gradient.magGradient);
+    this.renderMinSeam(seams.minSeam, gradient);
   }
 
-  renderMinSeam = (minSeam = this.state.minSeam) => {
+  renderMinSeam = (minSeam, gradient) => {
     let { activeCtx } = this.state;
+    let { width } = gradient.magGradient;
+
     activeCtx.fillStyle = 'red';
 
-    minSeam.forEach(point => {
-      let [x, y] = point;
+    minSeam.forEach(pixel => {
+      let x = pixel % width;
+      let y = Math.floor(pixel / width);
 
       activeCtx.fillRect(x, y, 1, 1);
     })
   }
 
   carveActiveImage = () => {
-    let { activeCtx: ctx } = this.state;
-    let { clientWidth: width, clientHeight: height } = ctx.canvas;
-    let imageData = ctx.getImageData(0, 0, width, height);
+    let { activeImage: imageData } = this.state;
 
     // generate a new gradient
-    let gradient = new MagGradient(ctx);
+    let gradient = new MagGradient(imageData);
 
     // generate a seam
-    let seam = new Seams(gradient);
+    let seam = new Seams(gradient.magGradient);
 
     // draw the seam on the image
-    this.renderMinSeam(seam.minSeam);
+    this.renderMinSeam(seam.minSeam, gradient);
 
     // carve seam from image data
     imageData = this.carveSeamFromImageData(seam.minSeam, imageData);
-
+    
     // after delay, carve seam from image and call again if not at target width
     setTimeout(() => {
       this.setState({ activeImage: imageData }, () => {
         if (this.state.activeImage.width > this.state.targetWidth) this.carveActiveImage();
       });
-    }, 5)
+    }, 5);
   }
 
   carveSeamFromImageData = (seam, imageData) => { 
     let { width, height } = imageData;
-    let newImageData = Array.from(imageData.data);
 
-    seam.forEach(([x, y]) => {
-      let i = (y * width + x) * 4;
-      
-      newImageData.splice(i, 4);
+    // I want to avoid this type of array duplication but it seems like the best
+    // way to splice pixels from the ImageData ArrayBuffer, as Typed Arrays
+    // do not have a native Splice method
+    let nextImageData = Array.from(imageData.data);
+
+    seam.forEach(pixel => {      
+      nextImageData.splice(pixel * 4, 4);
     });
 
-    return new ImageData(Uint8ClampedArray.from(newImageData), width - 1, height);
+    return new ImageData(Uint8ClampedArray.from(nextImageData), width - 1, height);
   }
   
 
