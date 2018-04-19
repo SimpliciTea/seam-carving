@@ -1,6 +1,6 @@
 /* 
 
-	Calculates low-energy seams across a 2d array of gradient magnitude data
+	Calculates low-energy seams across an Array of gradient magnitude data
 
 */
 

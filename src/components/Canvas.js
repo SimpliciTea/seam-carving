@@ -8,7 +8,6 @@ class Canvas extends React.Component {
 
 		this.state = {
 			imgLoaded: false,
-			imgSrc: props.imgSrc
 		};
 	}
 
@@ -17,8 +16,19 @@ class Canvas extends React.Component {
 	}
 
 	componentWillReceiveProps = (nextProps) => {
-		if (this.state.imgSrc !== nextProps.imgSrc) {
-			this.parseImgSrc();
+		if (this.props.imgSrc !== nextProps.imgSrc) {
+			if (typeof nextProps.imgSrc === 'string') {
+				this.setState({ 
+					ctx: undefined,
+					img: undefined,
+					width: undefined,
+					height: undefined
+				}, () => {
+					this.parseImgSrc();
+				})
+			} else {
+				this.parseImgSrc();
+			}
 		}
 	}
 
@@ -58,9 +68,9 @@ class Canvas extends React.Component {
 			let ratio = img.naturalHeight / img.naturalWidth;
 			let windowWidth = window.innerWidth;
 
-			let width = windowWidth * .9;
+			let width = (windowWidth < 900) ? windowWidth * .9 : 850;
 			let height = width * ratio;
-			
+
 			let canvas = document.createElement('canvas');
 			canvas.width = width;
 			canvas.height = height;
@@ -69,6 +79,7 @@ class Canvas extends React.Component {
 			ctx.drawImage(img, 0, 0, width, height);
 
 			let imgData = ctx.getImageData(0, 0, width, height);
+
 			canvas.remove();
 
 			this.setImageData(imgData);
